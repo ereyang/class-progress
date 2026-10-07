@@ -1,0 +1,865 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>수업 진도표</title>
+<style>
+  :root {
+    --bg: #f3f5f8;
+    --card: #ffffff;
+    --line: #dde2e8;
+    --text: #1f2933;
+    --muted: #66707c;
+    --accent: #2f6fde;
+    --done-bg: #e8f5ec;
+    --done: #2e9e63;
+    --late-bg: #fff3e3;
+    --late: #e8840f;
+    --holiday-bg: #eceef2;
+    --swap-bg: #fff4d1;
+    --swap: #8a5d00;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--text);
+    font-family: "Malgun Gothic", "Apple SD Gothic Neo", "Noto Sans KR", system-ui, sans-serif;
+    font-size: 16px;
+    -webkit-text-size-adjust: 100%;
+  }
+  button { font: inherit; cursor: pointer; color: inherit; }
+
+  /* ---------- 상단 바 ---------- */
+  .top {
+    position: sticky; top: 0; z-index: 10;
+    background: var(--card);
+    border-bottom: 1px solid var(--line);
+    padding: 10px 16px;
+    display: flex; flex-wrap: wrap; align-items: center; gap: 8px 16px;
+  }
+  .title { font-size: 20px; font-weight: 700; margin: 0; }
+  .range { color: var(--muted); font-size: 14px; }
+  .spacer { flex: 1; }
+  .seg { display: inline-flex; border: 1px solid var(--line); border-radius: 10px; overflow: hidden; }
+  .seg button {
+    min-height: 44px; padding: 0 18px; border: 0; background: var(--card);
+  }
+  .seg button + button { border-left: 1px solid var(--line); }
+  .seg button.on { background: var(--accent); color: #fff; font-weight: 700; }
+  .sync { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+  .saved { font-size: 13px; color: var(--muted); }
+  .btn {
+    min-height: 44px; padding: 0 14px;
+    border: 1px solid var(--line); border-radius: 10px; background: var(--card);
+  }
+  .btn:hover { border-color: var(--accent); }
+  .btn:disabled { opacity: .35; cursor: default; }
+
+  /* ---------- 주간 보기 ---------- */
+  .weeknav {
+    display: flex; align-items: center; justify-content: center; gap: 10px;
+    padding: 14px 16px 4px;
+  }
+  .weeknav .label { font-weight: 700; font-size: 17px; text-align: center; min-width: 220px; }
+  .weeknav .label small { display: block; font-weight: 400; font-size: 13px; color: var(--muted); }
+  .week {
+    display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 10px;
+    padding: 12px 16px 32px;
+  }
+  .day {
+    background: var(--card); border: 1px solid var(--line); border-radius: 12px;
+    padding: 8px; min-height: 140px;
+  }
+  .day.today { border: 2px solid var(--accent); }
+  .day.holiday { background: var(--holiday-bg); }
+  .dhead {
+    display: flex; justify-content: space-between; align-items: center; gap: 6px;
+    padding: 2px 4px 8px; font-weight: 700;
+  }
+  .dhead .todaytag {
+    font-size: 12px; background: var(--accent); color: #fff; border-radius: 6px; padding: 1px 6px;
+  }
+  .note {
+    font-size: 13px; border-radius: 8px; padding: 6px 8px; margin-bottom: 8px;
+  }
+  .note.swap { background: var(--swap-bg); color: var(--swap); }
+  .note.off { background: var(--holiday-bg); color: var(--muted); }
+  .holiday-msg { text-align: center; color: var(--muted); padding: 24px 4px; font-weight: 700; }
+  .empty-msg { text-align: center; color: #a0a8b2; padding: 24px 4px; font-size: 14px; }
+
+  /* ---------- 수업 카드 ---------- */
+  .lesson {
+    border: 1px solid var(--line); border-left: 6px solid var(--c);
+    border-radius: 10px; padding: 8px; margin-bottom: 8px; background: var(--card);
+  }
+  .lesson.done { background: var(--done-bg); }
+  .lesson.late { background: var(--late-bg); border-color: var(--late); border-left-color: var(--c); }
+  .lhead { display: flex; align-items: center; gap: 8px; }
+  .badge {
+    background: var(--c); color: #fff; font-weight: 700;
+    border-radius: 6px; padding: 2px 8px; font-size: 15px;
+  }
+  .meta { font-size: 13px; color: var(--muted); line-height: 1.3; flex: 1; min-width: 0; }
+  .meta b { color: var(--text); }
+  .check {
+    flex: none; width: 44px; height: 44px; border-radius: 10px;
+    border: 2px solid #b5bdc7; background: var(--card);
+    font-size: 22px; line-height: 1; color: transparent;
+  }
+  .lesson.done .check { background: var(--done); border-color: var(--done); color: #fff; }
+  .latetag { font-size: 12px; color: var(--late); font-weight: 700; }
+  .lesson textarea {
+    display: block; width: 100%; margin-top: 6px;
+    min-height: 44px; padding: 6px 8px; resize: none; overflow: hidden;
+    font: inherit; font-size: 15px; line-height: 1.4; color: var(--text);
+    border: 1px dashed var(--line); border-radius: 8px; background: rgba(255,255,255,.6);
+  }
+  .lesson textarea:focus { outline: none; border: 1px solid var(--accent); background: #fff; }
+  .lesson.done textarea { border-color: transparent; background: transparent; }
+
+  /* ---------- 반별 보기 (학년별 한 페이지) ---------- */
+  .tabs { display: flex; gap: 8px; padding: 14px 16px 4px; }
+  .tab {
+    min-height: 44px; padding: 4px 18px;
+    border: 1px solid var(--line); border-radius: 22px; background: var(--card);
+  }
+  .tab b { font-size: 16px; }
+  .tab small { color: var(--muted); font-size: 12px; margin-left: 4px; }
+  .tab.on { background: var(--accent); border-color: var(--accent); color: #fff; }
+  .tab.on small { color: rgba(255,255,255,.85); }
+  .ggrid {
+    display: grid; grid-template-columns: 34px repeat(var(--n), minmax(0, 1fr));
+    gap: 6px; padding: 10px 16px 40px; align-items: start;
+  }
+  .ggrid.narrow { max-width: 760px; margin: 0 auto; }
+  .gh {
+    position: sticky; top: var(--topH, 64px); z-index: 5;
+    background: var(--card); border: 1px solid var(--line); border-top: 5px solid var(--c);
+    border-radius: 10px; padding: 6px 8px; font-size: 13px;
+  }
+  .gh.corner { border-top-color: var(--line); color: var(--muted); text-align: center; padding: 6px 2px; }
+  .gh .ghead { display: flex; justify-content: space-between; align-items: baseline; gap: 4px; flex-wrap: wrap; }
+  .gh .ghead b { font-size: 17px; }
+  .gh .warn { color: var(--late); font-weight: 700; font-size: 12px; }
+  .bar { height: 8px; background: #e6e9ee; border-radius: 4px; margin-top: 4px; overflow: hidden; }
+  .bar span { display: block; height: 100%; background: var(--c); border-radius: 4px; }
+  .gno { text-align: center; font-weight: 700; color: var(--muted); padding-top: 14px; font-size: 14px; }
+  .ggrid .lesson { margin-bottom: 0; padding: 4px 4px 4px 8px; border-left-width: 4px; }
+  .ggrid .lesson.today { outline: 2px solid var(--accent); }
+  .ggrid .lhead { gap: 4px; }
+  .nowrap { white-space: nowrap; }
+
+  /* ---------- 차시 보기 ---------- */
+  .planwrap { max-width: 820px; margin: 0 auto; padding: 8px 16px 40px; }
+  .planh { font-size: 18px; margin: 12px 4px; }
+  .pitem {
+    display: flex; gap: 12px; background: var(--card); border: 1px solid var(--line);
+    border-radius: 12px; padding: 12px; margin-bottom: 10px;
+  }
+  .pno {
+    flex: none; width: 40px; height: 40px; border-radius: 50%;
+    background: var(--accent); color: #fff; font-weight: 700; font-size: 17px;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .pmain { flex: 1; min-width: 0; }
+  .ptitle { font-weight: 700; font-size: 17px; display: flex; flex-wrap: wrap; align-items: center; gap: 6px; min-height: 40px; }
+  .ptag { font-size: 12px; font-weight: 400; background: var(--swap-bg); color: var(--swap); border-radius: 6px; padding: 2px 8px; }
+  .pmain textarea {
+    display: block; width: 100%; margin-top: 6px; min-height: 60px; padding: 8px 10px;
+    resize: none; overflow: hidden; font: inherit; font-size: 15px; line-height: 1.5;
+    border: 1px dashed var(--line); border-radius: 8px; background: #fafbfc; color: var(--text);
+  }
+  .pmain textarea:focus { outline: none; border: 1px solid var(--accent); background: #fff; }
+
+  /* ---------- 달력 보기 ---------- */
+  .cal {
+    display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 6px;
+    padding: 12px 16px 40px;
+  }
+  .cal .dow { text-align: center; font-weight: 700; color: var(--muted); font-size: 14px; padding: 4px 0; }
+  .cell {
+    background: var(--card); border: 1px solid var(--line); border-radius: 10px;
+    padding: 6px; min-height: 96px; cursor: pointer; text-align: left; font: inherit;
+  }
+  .cell:hover { border-color: var(--accent); }
+  .cell.out { background: transparent; border-style: dashed; cursor: default; color: #b0b7c0; }
+  .cell.holiday { background: var(--holiday-bg); }
+  .cell.today { border: 2px solid var(--accent); }
+  .cell .cdate { font-weight: 700; font-size: 14px; display: flex; justify-content: space-between; gap: 4px; }
+  .cell .cnote { font-size: 11px; border-radius: 4px; padding: 1px 4px; margin-top: 3px; display: inline-block; }
+  .cell .cnote.swap { background: var(--swap-bg); color: var(--swap); }
+  .cell .cnote.off { background: var(--holiday-bg); color: var(--muted); }
+  .cell .choliday { color: var(--muted); font-weight: 700; font-size: 13px; margin-top: 10px; text-align: center; }
+  .centry { display: flex; gap: 4px; align-items: baseline; margin-top: 4px; font-size: 12px; line-height: 1.3; }
+  .centry .cb {
+    flex: none; background: var(--c); color: #fff; font-weight: 700;
+    border-radius: 4px; padding: 0 4px; font-size: 11px;
+  }
+  .centry .ct { min-width: 0; overflow-wrap: anywhere; }
+  .centry.done .ct { color: var(--done); }
+  .centry.done .ct::before { content: '✔ '; }
+  .centry .ct.empty { color: #b0b7c0; }
+  .lbody { display: flex; align-items: flex-start; gap: 6px; margin-top: 6px; }
+  .lbody textarea { flex: 1; min-width: 0; margin-top: 0 !important; }
+  .lesson .latetag { margin-top: 4px; }
+  .ggrid .meta { font-size: 13px; }
+  .toast {
+    position: fixed; left: 50%; bottom: 24px; transform: translateX(-50%);
+    background: #1f2933; color: #fff; padding: 12px 18px; border-radius: 10px;
+    font-size: 15px; z-index: 50; max-width: calc(100% - 32px); text-align: center;
+    box-shadow: 0 4px 16px rgba(0,0,0,.2);
+  }
+  .day.flash { animation: flash 1.2s ease-out; }
+  @keyframes flash { 0% { box-shadow: 0 0 0 6px rgba(47,111,222,.45); } 100% { box-shadow: 0 0 0 0 rgba(47,111,222,0); } }
+  .ggrid .check { width: 40px; height: 40px; font-size: 20px; }
+
+  /* ---------- 좁은 화면 (태블릿 세로, 휴대폰) ---------- */
+  @media (max-width: 900px) {
+    .week { grid-template-columns: 1fr; }
+    .day { min-height: 0; }
+    .holiday-msg, .empty-msg { padding: 8px 4px; }
+    .weeknav .label { min-width: 0; flex: 1; }
+  }
+  @media (max-width: 560px) {
+    .spacer { display: none; }
+    .sync { width: 100%; }
+    .saved { width: 100%; }
+  }
+  [hidden] { display: none !important; }
+</style>
+</head>
+<body>
+
+<header class="top">
+  <h1 class="title">수업 진도표</h1>
+  <span class="range" id="range"></span>
+  <div class="seg" role="tablist">
+    <button id="btnWeek" class="on">주간</button>
+    <button id="btnClass">반별</button>
+    <button id="btnCal">달력</button>
+    <button id="btnPlan">차시</button>
+  </div>
+  <div class="spacer"></div>
+  <div class="sync">
+    <span class="saved" id="saved"></span>
+    <button class="btn" id="btnExport">내보내기</button>
+    <button class="btn" id="btnImport">불러오기</button>
+    <input type="file" id="fileInput" accept=".json,application/json" hidden>
+  </div>
+</header>
+
+<main>
+  <section id="weekView">
+    <div class="weeknav">
+      <button class="btn" id="prevWeek" aria-label="이전 주">◀</button>
+      <div class="label" id="weekLabel"></div>
+      <button class="btn" id="nextWeek" aria-label="다음 주">▶</button>
+      <button class="btn" id="thisWeek">오늘로</button>
+    </div>
+    <div class="week" id="week"></div>
+  </section>
+
+  <section id="planView" hidden>
+    <div class="planwrap" id="planList"></div>
+  </section>
+
+  <section id="calView" hidden>
+    <div class="weeknav">
+      <button class="btn" id="prevMonth" aria-label="이전 달">◀</button>
+      <div class="label" id="monthLabel"></div>
+      <button class="btn" id="nextMonth" aria-label="다음 달">▶</button>
+      <button class="btn" id="thisMonth">이번 달</button>
+    </div>
+    <div class="cal" id="cal"></div>
+  </section>
+
+  <section id="classView" hidden>
+    <div class="tabs" id="tabs"></div>
+    <div class="ggrid" id="classList"></div>
+  </section>
+</main>
+
+<script>
+// =====================================================================
+// 1. 설정: 기간 · 시간표 · 학사일정  (바뀌면 여기만 고치면 됩니다)
+// =====================================================================
+const START = '2026-10-12';
+const END   = '2027-01-07';
+
+const PERIOD_TIME = { 1: '08:20', 2: '09:20', 3: '10:20', 4: '11:20', 5: '13:00', 6: '14:00', 7: '15:00' };
+
+// 요일 번호: 1=월 2=화 3=수 4=목 5=금
+const TIMETABLE = {
+  1: [{ p: 3, cls: '305' }, { p: 4, cls: '104' }, { p: 5, cls: '102' }],
+  2: [{ p: 2, cls: '103' }, { p: 4, cls: '101' }, { p: 5, cls: '105' }],
+  3: [{ p: 1, cls: '101' }, { p: 3, cls: '106' }, { p: 5, cls: '301' }],
+  4: [{ p: 2, cls: '106' }, { p: 3, cls: '105' }, { p: 5, cls: '102' }],
+  5: [{ p: 1, cls: '103' }, { p: 4, cls: '104' }],
+};
+
+// 반 번호와 색 (1학년 = 파란 계열, 3학년 = 초록 계열)
+const CLASSES = [
+  { id: '101', color: '#2f6fde' },
+  { id: '102', color: '#1689c9' },
+  { id: '103', color: '#5562d6' },
+  { id: '104', color: '#0f8f9e' },
+  { id: '105', color: '#3d5fa8' },
+  { id: '106', color: '#7a5ad0' },
+  { id: '301', color: '#2e9e63' },
+  { id: '305', color: '#6b9a1f' },
+];
+
+// 수업 없는 날. classes 가 없으면 전체, 있으면 그 반만 빠짐
+const HOLIDAYS = [
+  { from: '2026-10-20', to: '2026-10-20', reason: '학력평가' },
+  { from: '2026-10-29', to: '2026-10-30', reason: '체험학습' },
+  { from: '2026-11-18', to: '2026-11-18', reason: '장행식' },
+  { from: '2026-11-19', to: '2026-11-19', reason: '수능' },
+  { from: '2026-11-20', to: '2026-11-20', reason: '재량휴일' },
+  { from: '2026-11-23', to: '2026-11-26', reason: '3학년 기말', classes: ['301', '305'] },
+  { from: '2026-12-07', to: '2026-12-11', reason: '기말고사' },
+  { from: '2026-12-25', to: '2026-12-25', reason: '성탄절' },
+  { from: '2027-01-01', to: '2027-01-01', reason: '신정' },
+];
+
+// 요일 바꿈: 이 날짜에는 다른 요일 시간표로 수업
+const SWAPS = {
+  '2026-11-17': 5, // 화 → 금요일 시간표
+  '2026-12-21': 4, // 월 → 목요일 시간표
+  '2026-12-22': 5, // 화 → 금요일 시간표
+  '2026-12-29': 4, // 화 → 목요일 시간표
+  '2026-12-30': 5, // 수 → 금요일 시간표
+};
+
+// 학년 공통 수업 계획 (모든 반이 같은 순서로 배움)
+//  - fixed: 날짜가 정해진 수업. 그 기간에 드는 각 반의 수업에 순서대로 들어감
+//  - sequence: 나머지 수업에 차례대로 들어가는 진도
+//  반 카드에 직접 내용을 적으면 그 반만 공통 계획 대신 적은 내용이 보임
+const COMMON_PLANS = [
+  {
+    classes: ['101', '102', '103', '104', '105', '106'],
+    fixed: [
+      { from: '2026-11-09', to: '2026-11-13', items: ['수행 1차시', '수행 2차시'] },
+    ],
+    sequence: [
+      '교과서 1차시',
+      '교과서 2차시',
+      '교과서 3차시',
+      '추가자료 지문 1번',
+      '추가자료 지문 2·3번',
+      '추가자료 지문 4·5번',
+      '추가자료 지문 6번',
+      '추가자료 지문 7·8번',
+      '추가자료 지문 9·10번',
+    ],
+    // 진도를 다 나간 뒤 이 날짜까지 남는 수업은 복습
+    after: { text: '복습', until: '2026-11-27' },
+  },
+];
+
+// =====================================================================
+// 2. 날짜 도우미
+// =====================================================================
+const DOW = ['일', '월', '화', '수', '목', '금', '토'];
+const pad = n => String(n).padStart(2, '0');
+const ymd = d => `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+const parse = s => { const [y, m, d] = s.split('-').map(Number); return new Date(y, m - 1, d); };
+const md = s => { const d = parse(s); return `${d.getMonth() + 1}/${d.getDate()}`; };
+const mdDow = s => `${md(s)}(${DOW[parse(s).getDay()]})`;
+const TODAY = ymd(new Date());
+const colorOf = id => CLASSES.find(c => c.id === id).color;
+const esc = s => String(s).replace(/[&<>"]/g, ch => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[ch]));
+
+// =====================================================================
+// 3. 수업 일정 만들기
+// =====================================================================
+const days = [];            // 평일 하나하나
+const byClass = {};         // 반별 수업 목록 (빠진 수업 포함)
+CLASSES.forEach(c => byClass[c.id] = []);
+
+(function build() {
+  const count = {};
+  for (let d = parse(START); ymd(d) <= END; d.setDate(d.getDate() + 1)) {
+    const dow = d.getDay();
+    if (dow === 0 || dow === 6) continue;
+    const key = ymd(d);
+    const useDow = SWAPS[key] || dow;
+    const hol = HOLIDAYS.find(h => key >= h.from && key <= h.to);
+    const day = { key, dow, useDow, holiday: null, partial: null, lessons: [] };
+
+    for (const s of TIMETABLE[useDow] || []) {
+      const skipped = hol && (!hol.classes || hol.classes.includes(s.cls));
+      if (skipped) {
+        byClass[s.cls].push({ skip: true, key, p: s.p, cls: s.cls, reason: hol.reason });
+        if (hol.classes) day.partial = { reason: hol.reason, classes: [...(day.partial ? day.partial.classes : []), s.cls] };
+        continue;
+      }
+      count[s.cls] = (count[s.cls] || 0) + 1;
+      const L = { id: `${key}_${s.p}_${s.cls}`, key, p: s.p, cls: s.cls, no: count[s.cls] };
+      day.lessons.push(L);
+      byClass[s.cls].push(L);
+    }
+    if (hol && !hol.classes) day.holiday = hol.reason;
+    day.lessons.sort((a, b) => a.p - b.p);
+    days.push(day);
+  }
+})();
+
+// 공통 계획을 반별 수업에 나눠 넣기 → COMMON_TEXT[수업id] = 내용
+const COMMON_TEXT = {};
+COMMON_PLANS.forEach(plan => plan.classes.forEach(id => {
+  let next = 0;
+  const fixedUsed = plan.fixed.map(() => 0);
+  byClass[id].filter(x => !x.skip).forEach(L => {
+    const fi = plan.fixed.findIndex(f => L.key >= f.from && L.key <= f.to);
+    if (fi !== -1) {
+      const item = plan.fixed[fi].items[fixedUsed[fi]++];
+      if (item) COMMON_TEXT[L.id] = item;
+      return;
+    }
+    if (next < plan.sequence.length) COMMON_TEXT[L.id] = plan.sequence[next++];
+    else if (plan.after && L.key <= plan.after.until) COMMON_TEXT[L.id] = plan.after.text;
+  });
+}));
+
+// 차시 목록: 공통 계획의 항목을 "대부분의 반에서 몇 번째 차시인지" 순서로 나열
+const PLAN_LISTS = COMMON_PLANS.map(plan => {
+  const items = [
+    ...plan.sequence.map((title, i) => ({ title, order: i })),
+    ...plan.fixed.flatMap(f => f.items.map((title, i) => ({ title, order: 1000 + i, tag: `${mdDow(f.from)} ~ ${mdDow(f.to)} 주` }))),
+  ];
+  items.forEach(it => {
+    const nos = Object.entries(COMMON_TEXT)
+      .filter(([id, t]) => t === it.title && plan.classes.includes(id.split('_')[2]))
+      .map(([id]) => byClass[id.split('_')[2]].find(L => L.id === id).no);
+    const freq = {};
+    nos.forEach(n => freq[n] = (freq[n] || 0) + 1);
+    it.pos = nos.length ? +Object.keys(freq).sort((a, b) => freq[b] - freq[a] || a - b)[0] : 999;
+  });
+  items.sort((a, b) => a.pos - b.pos || a.order - b.order);
+  if (plan.after) items.push({ title: plan.after.text, tag: '진도 끝나고 남는 시간', extra: true });
+  return { classes: plan.classes, items };
+});
+
+// 주 단위로 묶기 (월~금)
+const weeks = [];
+days.forEach(day => {
+  if (day.dow === 1 || weeks.length === 0) weeks.push([]);
+  weeks[weeks.length - 1].push(day);
+});
+
+// =====================================================================
+// 4. 저장 (이 브라우저의 localStorage)
+// =====================================================================
+const STORE_KEY = 'jindo-2026-2';
+let data = { app: 'jindo', version: 1, updatedAt: null, lessons: {} };
+
+function load() {
+  try {
+    const raw = localStorage.getItem(STORE_KEY);
+    if (raw) {
+      const d = JSON.parse(raw);
+      if (d && d.lessons) data = d;
+    }
+  } catch (e) { /* 저장소를 못 쓰는 환경이면 빈 상태로 시작 */ }
+}
+function save() {
+  data.updatedAt = new Date().toISOString();
+  try { localStorage.setItem(STORE_KEY, JSON.stringify(data)); }
+  catch (e) { alert('저장에 실패했어요. [내보내기]로 파일을 받아두세요.'); }
+  showSaved();
+}
+const rec = id => data.lessons[id] || { text: '', done: false };
+function setRec(id, patch) {
+  data.lessons[id] = Object.assign({}, rec(id), patch);
+  save();
+}
+
+function fmtTime(iso) {
+  if (!iso) return '';
+  const d = new Date(iso);
+  return `${d.getMonth() + 1}/${d.getDate()} ${pad(d.getHours())}:${pad(d.getMinutes())}`;
+}
+function showSaved() {
+  document.getElementById('saved').textContent =
+    data.updatedAt ? `마지막 수정 ${fmtTime(data.updatedAt)}` : '아직 적은 내용 없음';
+}
+
+// =====================================================================
+// 5. 수업 카드
+// =====================================================================
+const isLate = L => L.key < TODAY && !rec(L.id).done;
+
+// inGrid: 반별(학년) 표 안의 작은 카드 — 반 번호 대신 날짜를 보여줌
+function lessonCard(L, inGrid) {
+  const r = rec(L.id);
+  const late = !r.done && isLate(L);
+  const cls = ['lesson', r.done ? 'done' : '', late ? 'late' : '', L.key === TODAY ? 'today' : ''].join(' ');
+  const check = `<button class="check" aria-label="완료 표시" aria-pressed="${r.done}">✔</button>`;
+  if (inGrid) return `
+    <div class="${cls}" data-id="${L.id}" style="--c:${colorOf(L.cls)}">
+      <div class="lhead">
+        <span class="meta"><b>${mdDow(L.key)}</b><br>${L.p}교시</span>
+        ${check}
+      </div>
+    </div>`;
+  // 주간 카드: 윗줄 = 반 · 교시 · 차시 (한 줄), 아랫줄 = 내용 + 체크
+  return `
+    <div class="${cls}" data-id="${L.id}" style="--c:${colorOf(L.cls)}">
+      <div class="lhead">
+        <span class="badge">${L.cls}</span>
+        <span class="meta nowrap">${L.p}교시 · <b>${L.no}차시</b></span>
+      </div>
+      ${late ? '<div class="latetag">체크 안 됨</div>' : ''}
+      <div class="lbody">
+        <textarea rows="1" placeholder="내용 적기">${esc(r.text || COMMON_TEXT[L.id] || '')}</textarea>
+        ${check}
+      </div>
+    </div>`;
+}
+
+function autoGrow(ta) {
+  ta.style.height = 'auto';
+  ta.style.height = ta.scrollHeight + 2 + 'px';
+}
+function growAll(root) { root.querySelectorAll('textarea').forEach(autoGrow); }
+
+// 카드 안의 입력·체크를 한 곳에서 처리
+function wireCards(root) {
+  root.addEventListener('input', e => {
+    if (e.target.tagName !== 'TEXTAREA') return;
+    const card = e.target.closest('.lesson');
+    setRec(card.dataset.id, { text: e.target.value });
+    autoGrow(e.target);
+  });
+  root.addEventListener('click', e => {
+    const btn = e.target.closest('.check');
+    if (!btn) return;
+    const card = btn.closest('.lesson');
+    const id = card.dataset.id;
+    const done = !rec(id).done;
+    setRec(id, { done });
+    if (view === 'week') renderWeek(); else renderGrade();
+  });
+}
+
+// =====================================================================
+// 6. 주간 보기
+// =====================================================================
+let weekIdx = 0;
+function weekOfToday() {
+  // 오늘이 속한 주 (주말이면 다음 주, 기간 밖이면 처음/마지막 주)
+  const i = weeks.findIndex(w => TODAY <= w[w.length - 1].key);
+  return i === -1 ? weeks.length - 1 : i;
+}
+
+function renderWeek() {
+  const w = weeks[weekIdx];
+  const first = w[0].key, last = w[w.length - 1].key;
+  document.getElementById('weekLabel').innerHTML =
+    `${weekIdx + 1}주차<small>${mdDow(first)} ~ ${mdDow(last)}</small>`;
+  document.getElementById('prevWeek').disabled = weekIdx === 0;
+  document.getElementById('nextWeek').disabled = weekIdx === weeks.length - 1;
+
+  const box = document.getElementById('week');
+  box.innerHTML = w.map(day => {
+    const today = day.key === TODAY;
+    let body = '';
+    if (day.useDow !== day.dow) body += `<div class="note swap">${DOW[day.useDow]}요일 시간표로 수업</div>`;
+    if (day.partial) {
+      body += `<div class="note off">${esc(day.partial.reason)}: ${day.partial.classes.join(', ')} 수업 없음</div>`;
+    }
+    if (day.holiday) body += `<div class="holiday-msg">${esc(day.holiday)}<br><small>수업 없음</small></div>`;
+    else if (!day.lessons.length) body += `<div class="empty-msg">수업 없음</div>`;
+    else body += day.lessons.map(L => lessonCard(L, false)).join('');
+    return `
+      <div class="day ${today ? 'today' : ''} ${day.holiday ? 'holiday' : ''}">
+        <div class="dhead">
+          <span>${DOW[day.dow]} ${md(day.key)}</span>
+          ${today ? '<span class="todaytag">오늘</span>' : ''}
+        </div>
+        ${body}
+      </div>`;
+  }).join('');
+  growAll(box);
+}
+
+// =====================================================================
+// 7. 반별 보기
+// =====================================================================
+const GRADES = [
+  { id: '1', name: '1학년', classes: ['101', '102', '103', '104', '105', '106'] },
+  { id: '3', name: '3학년', classes: ['301', '305'] },
+];
+let curGrade = GRADES[0].id;
+
+function stats(id) {
+  const list = byClass[id].filter(x => !x.skip);
+  const done = list.filter(L => rec(L.id).done).length;
+  const late = list.filter(isLate).length;
+  return { total: list.length, done, late };
+}
+
+// 학년 하나를 한 페이지에: 가로 = 반, 세로 = 차시
+function renderGrade() {
+  document.getElementById('tabs').innerHTML = GRADES.map(g => {
+    const done = g.classes.reduce((n, id) => n + stats(id).done, 0);
+    const total = g.classes.reduce((n, id) => n + stats(id).total, 0);
+    return `<button class="tab ${g.id === curGrade ? 'on' : ''}" data-grade="${g.id}">
+      <b>${g.name}</b><small>${done}/${total}</small></button>`;
+  }).join('');
+
+  const g = GRADES.find(x => x.id === curGrade);
+  const lists = g.classes.map(id => byClass[id].filter(x => !x.skip));
+  const maxNo = Math.max(...lists.map(l => l.length));
+
+  let html = '<div class="gh corner">차시</div>';
+  g.classes.forEach(id => {
+    const s = stats(id);
+    const pct = s.total ? Math.round(s.done / s.total * 100) : 0;
+    html += `<div class="gh" style="--c:${colorOf(id)}">
+      <div class="ghead"><b>${id}</b><span>${s.done}/${s.total}</span></div>
+      <div class="bar"><span style="width:${pct}%"></span></div>
+      ${s.late ? `<div class="warn">체크 안 됨 ${s.late}</div>` : ''}
+    </div>`;
+  });
+  for (let i = 0; i < maxNo; i++) {
+    html += `<div class="gno">${i + 1}</div>`;
+    lists.forEach(list => { html += list[i] ? lessonCard(list[i], true) : '<div></div>'; });
+  }
+
+  const box = document.getElementById('classList');
+  box.style.setProperty('--n', g.classes.length);
+  box.classList.toggle('narrow', g.classes.length <= 2);
+  box.innerHTML = html;
+  setTopH();
+  growAll(box);
+}
+
+// 고정된 상단 바 바로 아래에 반 머리줄이 붙도록
+function setTopH() {
+  document.documentElement.style.setProperty('--topH', document.querySelector('.top').offsetHeight + 'px');
+}
+
+document.getElementById('tabs').addEventListener('click', e => {
+  const t = e.target.closest('.tab');
+  if (!t) return;
+  curGrade = t.dataset.grade;
+  try { localStorage.setItem(STORE_KEY + '-grade', curGrade); } catch (e) {}
+  renderGrade();
+});
+
+// =====================================================================
+// 8. 보기 전환
+// =====================================================================
+const VIEWS = {
+  week:  { section: 'weekView',  btn: 'btnWeek',  render: () => renderWeek() },
+  class: { section: 'classView', btn: 'btnClass', render: () => renderGrade() },
+  cal:   { section: 'calView',   btn: 'btnCal',   render: () => renderCal() },
+  plan:  { section: 'planView',  btn: 'btnPlan',  render: () => renderPlan() },
+};
+let view = 'week';
+function setView(v) {
+  view = v;
+  for (const [k, cfg] of Object.entries(VIEWS)) {
+    document.getElementById(cfg.section).hidden = k !== v;
+    document.getElementById(cfg.btn).classList.toggle('on', k === v);
+  }
+  VIEWS[v].render();
+  try { localStorage.setItem(STORE_KEY + '-view', v); } catch (e) {}
+}
+document.getElementById('btnWeek').onclick = () => setView('week');
+document.getElementById('btnClass').onclick = () => setView('class');
+document.getElementById('btnCal').onclick = () => setView('cal');
+document.getElementById('btnPlan').onclick = () => setView('plan');
+
+// =====================================================================
+// 8-2. 차시 보기 (공통 계획 차시 목록 + 자세한 설명)
+// =====================================================================
+function renderPlan() {
+  const box = document.getElementById('planList');
+  box.innerHTML = PLAN_LISTS.map(pl => {
+    const g = GRADES.find(x => x.classes.join() === pl.classes.join());
+    let n = 0;
+    return `<h2 class="planh">${g ? g.name : pl.classes.join(', ')} 공통 차시 계획</h2>` +
+      pl.items.map(it => `
+        <div class="pitem" data-title="${esc(it.title)}">
+          <div class="pno">${it.extra ? '+' : ++n}</div>
+          <div class="pmain">
+            <div class="ptitle">${esc(it.title)}${it.tag ? `<span class="ptag">${esc(it.tag)}</span>` : ''}</div>
+            <textarea rows="2" placeholder="수업 활동, 준비물, 유의점 등 자세히 적기">${esc((data.plan || {})[it.title] || '')}</textarea>
+          </div>
+        </div>`).join('');
+  }).join('');
+  growAll(box);
+}
+document.getElementById('planList').addEventListener('input', e => {
+  if (e.target.tagName !== 'TEXTAREA') return;
+  data.plan = data.plan || {};
+  data.plan[e.target.closest('.pitem').dataset.title] = e.target.value;
+  save();
+  autoGrow(e.target);
+});
+
+// =====================================================================
+// 8-1. 달력 보기 (월별: 날짜마다 반 + 수업 내용)
+// =====================================================================
+const dayMap = Object.fromEntries(days.map(d => [d.key, d]));
+const months = [];
+for (let d = parse(START); ymd(d) <= END; d.setMonth(d.getMonth() + 1, 1)) {
+  months.push({ y: d.getFullYear(), m: d.getMonth() });
+}
+let monthIdx = 0;
+function monthOfToday() {
+  const t = parse(TODAY);
+  const i = months.findIndex(x => x.y === t.getFullYear() && x.m === t.getMonth());
+  return i !== -1 ? i : (TODAY < START ? 0 : months.length - 1);
+}
+
+function renderCal() {
+  const { y, m } = months[monthIdx];
+  document.getElementById('monthLabel').innerHTML = `${y}년 ${m + 1}월`;
+  document.getElementById('prevMonth').disabled = monthIdx === 0;
+  document.getElementById('nextMonth').disabled = monthIdx === months.length - 1;
+
+  let html = ['월', '화', '수', '목', '금'].map(n => `<div class="dow">${n}</div>`).join('');
+  // 그 달의 주(월~금)를 차례로. 수업 기간에 드는 날이 하나도 없는 주는 건너뜀
+  const last = new Date(y, m + 1, 0);
+  const mon = new Date(y, m, 1);
+  mon.setDate(mon.getDate() - ((mon.getDay() + 6) % 7));
+  for (; mon <= last; mon.setDate(mon.getDate() + 7)) {
+    const week = [0, 1, 2, 3, 4].map(i => new Date(mon.getFullYear(), mon.getMonth(), mon.getDate() + i));
+    if (!week.some(d => d.getMonth() === m && dayMap[ymd(d)])) continue;
+    html += week.map(d => calCell(d, m)).join('');
+  }
+  document.getElementById('cal').innerHTML = html;
+}
+
+function calCell(d, m) {
+    const key = ymd(d);
+    const day = dayMap[key];
+    if (d.getMonth() !== m || !day) {
+      return `<div class="cell out"><div class="cdate">${d.getMonth() === m ? d.getDate() : ''}</div></div>`;
+    }
+    let body = '';
+    if (day.useDow !== day.dow) body += `<span class="cnote swap">${DOW[day.useDow]}요일 시간표</span>`;
+    if (day.partial) body += `<span class="cnote off">${day.partial.classes.join('·')} 없음</span>`;
+    if (day.holiday) body += `<div class="choliday">${esc(day.holiday)}</div>`;
+    body += day.lessons.map(L => {
+      const r = rec(L.id);
+      const text = r.text || COMMON_TEXT[L.id] || '';
+      return `<div class="centry ${r.done ? 'done' : ''}" style="--c:${colorOf(L.cls)}">
+        <span class="cb">${L.cls}</span>
+        <span class="ct ${text ? '' : 'empty'}">${text ? esc(text.split('\n')[0]) : '—'}</span>
+      </div>`;
+    }).join('');
+    return `<button class="cell ${day.holiday ? 'holiday' : ''} ${key === TODAY ? 'today' : ''}" data-key="${key}">
+      <div class="cdate"><span>${d.getDate()}</span></div>${body}</button>`;
+}
+
+// 날짜를 누르면 그 주의 주간 보기로
+document.getElementById('cal').addEventListener('click', e => {
+  const c = e.target.closest('.cell[data-key]');
+  if (!c) return;
+  weekIdx = weeks.findIndex(w => w.some(x => x.key === c.dataset.key));
+  setView('week');
+  const target = [...document.querySelectorAll('#week .day')][weeks[weekIdx].findIndex(x => x.key === c.dataset.key)];
+  if (target) { target.scrollIntoView({ behavior: 'smooth', block: 'center' }); target.classList.add('flash'); }
+});
+document.getElementById('prevMonth').onclick = () => { if (monthIdx > 0) { monthIdx--; renderCal(); } };
+document.getElementById('nextMonth').onclick = () => { if (monthIdx < months.length - 1) { monthIdx++; renderCal(); } };
+document.getElementById('thisMonth').onclick = () => { monthIdx = monthOfToday(); renderCal(); };
+document.getElementById('prevWeek').onclick = () => { if (weekIdx > 0) { weekIdx--; renderWeek(); } };
+document.getElementById('nextWeek').onclick = () => { if (weekIdx < weeks.length - 1) { weekIdx++; renderWeek(); } };
+document.getElementById('thisWeek').onclick = () => {
+  weekIdx = weekOfToday();
+  renderWeek();
+  if (TODAY < START) { toast(`아직 수업 기간 전이에요. 첫 주(${mdDow(START)}~)를 보여드려요.`); return; }
+  if (TODAY > END) { toast('수업 기간이 끝났어요. 마지막 주를 보여드려요.'); return; }
+  const el = document.querySelector('.day.today') || document.querySelector('.day');
+  el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  el.classList.add('flash');
+  if (!document.querySelector('.day.today')) toast('오늘은 주말이라 다음 주를 보여드려요.');
+};
+
+let toastTimer;
+function toast(msg) {
+  let t = document.querySelector('.toast');
+  if (!t) { t = document.createElement('div'); t.className = 'toast'; document.body.appendChild(t); }
+  t.textContent = msg;
+  t.hidden = false;
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => { t.hidden = true; }, 2500);
+}
+
+// =====================================================================
+// 9. 내보내기 / 불러오기 (PC ↔ 태블릿 옮기기)
+// =====================================================================
+document.getElementById('btnExport').onclick = () => {
+  if (!data.updatedAt) { alert('아직 적은 내용이 없어요.'); return; }
+  const now = new Date();
+  const name = `진도표_${pad(now.getMonth() + 1)}${pad(now.getDate())}_${pad(now.getHours())}${pad(now.getMinutes())}.json`;
+  const blob = new Blob([JSON.stringify(data, null, 1)], { type: 'application/json' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = name;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+};
+
+const fileInput = document.getElementById('fileInput');
+document.getElementById('btnImport').onclick = () => fileInput.click();
+fileInput.onchange = () => {
+  const file = fileInput.files[0];
+  fileInput.value = '';
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = () => {
+    let incoming;
+    try { incoming = JSON.parse(reader.result); } catch (e) { incoming = null; }
+    if (!incoming || incoming.app !== 'jindo' || !incoming.lessons) {
+      alert('진도표 파일이 아니에요. [내보내기]로 받은 .json 파일을 골라주세요.');
+      return;
+    }
+    const here = data.updatedAt ? fmtTime(data.updatedAt) : '내용 없음';
+    const there = incoming.updatedAt ? fmtTime(incoming.updatedAt) : '알 수 없음';
+    let msg = `지금 기기: ${here} 수정\n불러올 파일: ${there} 수정\n\n`;
+    if (data.updatedAt && incoming.updatedAt && incoming.updatedAt < data.updatedAt) {
+      msg += '⚠ 지금 기기의 내용이 더 최신이에요!\n';
+    }
+    msg += '이 기기의 내용을 파일 내용으로 바꿀까요?';
+    if (!confirm(msg)) return;
+    data = incoming;
+    try { localStorage.setItem(STORE_KEY, JSON.stringify(data)); } catch (e) {}
+    showSaved();
+    setView(view);
+    alert('불러오기 완료!');
+  };
+  reader.readAsText(file);
+};
+
+// =====================================================================
+// 10. 시작
+// =====================================================================
+load();
+showSaved();
+document.getElementById('range').textContent = `${md(START)} ~ ${md(END)}`;
+try {
+  const g = localStorage.getItem(STORE_KEY + '-grade');
+  if (GRADES.some(x => x.id === g)) curGrade = g;
+} catch (e) {}
+weekIdx = weekOfToday();
+wireCards(document.getElementById('week'));
+wireCards(document.getElementById('classList'));
+let startView = 'week';
+monthIdx = monthOfToday();
+try { const v = localStorage.getItem(STORE_KEY + '-view'); if (VIEWS[v]) startView = v; } catch (e) {}
+setView(startView);
+window.addEventListener('resize', () => setTopH() || growAll(document.getElementById(VIEWS[view].section)));
+</script>
+</body>
+</html>
