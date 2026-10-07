@@ -244,6 +244,7 @@
   <div class="spacer"></div>
   <div class="sync">
     <span class="saved" id="saved"></span>
+    <button class="btn" id="btnSync">동기화</button>
     <button class="btn" id="btnExport">내보내기</button>
     <button class="btn" id="btnImport">불러오기</button>
     <input type="file" id="fileInput" accept=".json,application/json" hidden>
@@ -454,28 +455,53 @@ days.forEach(day => {
 // 4. 저장 (이 브라우저의 localStorage)
 // =====================================================================
 const STORE_KEY = 'jindo-2026-2';
-let data = { app: 'jindo', version: 1, updatedAt: null, lessons: {} };
+// 수업(lessons)과 차시 설명(plan)은 항목마다 고친 시각 t 를 가짐 → 기기끼리 합칠 때 더 최근 것을 씀
+let data = { app: 'jindo', version: 2, updatedAt: null, lessons: {}, plan: {} };
+
+function normalize(d) {
+  d.lessons = d.lessons || {};
+  d.plan = d.plan || {};
+  for (const k in d.plan) if (typeof d.plan[k] === 'string') d.plan[k] = { text: d.plan[k], t: 0 };
+  return d;
+}
+function mergeData(a, b) {
+  const out = { app: 'jindo', version: 2, updatedAt: null, lessons: {}, plan: {} };
+  for (const k of ['lessons', 'plan']) {
+    const A = a[k] || {}, B = b[k] || {};
+    for (const id of new Set([...Object.keys(A), ...Object.keys(B)])) {
+      const x = A[id], y = B[id];
+      out[k][id] = !x ? y : !y ? x : ((y.t || 0) > (x.t || 0) ? y : x);
+    }
+  }
+  out.updatedAt = [a.updatedAt, b.updatedAt].filter(Boolean).sort().pop() || null;
+  return out;
+}
 
 function load() {
   try {
     const raw = localStorage.getItem(STORE_KEY);
     if (raw) {
       const d = JSON.parse(raw);
-      if (d && d.lessons) data = d;
+      if (d && d.lessons) data = normalize(d);
     }
   } catch (e) { /* 저장소를 못 쓰는 환경이면 빈 상태로 시작 */ }
 }
-function save() {
-  data.updatedAt = new Date().toISOString();
+function store() {
   try { localStorage.setItem(STORE_KEY, JSON.stringify(data)); }
   catch (e) { alert('저장에 실패했어요. [내보내기]로 파일을 받아두세요.'); }
+}
+function save() {
+  data.updatedAt = new Date().toISOString();
+  store();
   showSaved();
+  scheduleSync();
 }
 const rec = id => data.lessons[id] || { text: '', done: false };
 function setRec(id, patch) {
-  data.lessons[id] = Object.assign({}, rec(id), patch);
+  data.lessons[id] = Object.assign({}, rec(id), patch, { t: Date.now() });
   save();
 }
+const planText = title => (data.plan[title] || {}).text || '';
 
 function fmtTime(iso) {
   if (!iso) return '';
@@ -483,9 +509,77 @@ function fmtTime(iso) {
   return `${d.getMonth() + 1}/${d.getDate()} ${pad(d.getHours())}:${pad(d.getMinutes())}`;
 }
 function showSaved() {
-  document.getElementById('saved').textContent =
-    data.updatedAt ? `마지막 수정 ${fmtTime(data.updatedAt)}` : '아직 적은 내용 없음';
+  const el = document.getElementById('saved');
+  if (syncUrl) {
+    el.textContent = syncState === 'saving' ? '☁ 저장 중…'
+      : syncState === 'fail' ? '⚠ 연결 안 됨 (이 기기에 보관 중)'
+      : syncState === 'ok' ? `☁ 구글 시트 저장됨 ${fmtTime(syncedAt)}` : '☁ 연결 중…';
+    el.style.color = syncState === 'fail' ? 'var(--late)' : '';
+    return;
+  }
+  el.style.color = '';
+  el.textContent = data.updatedAt ? `마지막 수정 ${fmtTime(data.updatedAt)}` : '아직 적은 내용 없음';
 }
+
+// =====================================================================
+// 4-1. 구글 시트 자동 저장 (Apps Script 웹 앱)
+//   - 주소는 기기마다 [동기화] 버튼으로 한 번 넣음 (깃허브 코드에는 주소를 넣지 않음)
+//   - 고칠 때마다 잠깐 뒤 올리고, 화면을 다시 볼 때마다 최신 내용을 받아옴
+//   - 시트 쪽도 항목별로 더 최근 것을 골라 합치므로 두 기기에서 고쳐도 덮어쓰지 않음
+// =====================================================================
+const SYNC_KEY = 'jindo-sync-url';
+let syncUrl = '';
+try { syncUrl = localStorage.getItem(SYNC_KEY) || ''; } catch (e) {}
+let syncState = '', syncedAt = null, syncTimer = null, retryTimer = null, syncing = false, syncAgain = false;
+
+function scheduleSync(delay = 1500) {
+  if (!syncUrl) return;
+  clearTimeout(syncTimer);
+  syncTimer = setTimeout(pushSync, delay);
+}
+
+async function pushSync() {
+  if (!syncUrl) return;
+  if (syncing) { syncAgain = true; return; }
+  syncing = true;
+  syncState = 'saving'; showSaved();
+  clearTimeout(retryTimer);
+  try {
+    const res = await fetch(syncUrl, {
+      method: 'POST',
+      headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+      body: JSON.stringify(data),
+    });
+    const server = await res.json();
+    if (!server || !server.lessons) throw new Error('bad response');
+    adopt(normalize(server));
+    syncState = 'ok'; syncedAt = new Date().toISOString();
+  } catch (e) {
+    syncState = 'fail';
+    retryTimer = setTimeout(pushSync, 30000);
+  }
+  syncing = false;
+  showSaved();
+  if (syncAgain) { syncAgain = false; pushSync(); }
+}
+
+// 시트에서 받은 내용을 이 기기 내용과 합치고, 바뀐 게 있으면 화면을 다시 그림
+let pendingRender = false;
+function adopt(server) {
+  const before = JSON.stringify([data.lessons, data.plan]);
+  data = mergeData(data, server);
+  store();
+  if (JSON.stringify([data.lessons, data.plan]) !== before) rerender();
+}
+function rerender() {
+  // 글을 쓰는 중이면 커서가 튀지 않게 다 쓰고 나서 다시 그림
+  if (document.activeElement && document.activeElement.tagName === 'TEXTAREA') { pendingRender = true; return; }
+  pendingRender = false;
+  VIEWS[view].render();
+}
+document.addEventListener('focusout', () => setTimeout(() => { if (pendingRender) rerender(); }, 0));
+document.addEventListener('visibilitychange', () => { if (!document.hidden) scheduleSync(0); });
+window.addEventListener('online', () => scheduleSync(0));
 
 // =====================================================================
 // 5. 수업 카드
@@ -689,7 +783,7 @@ function renderPlan() {
           <div class="pno">${it.extra ? '+' : ++n}</div>
           <div class="pmain">
             <div class="ptitle">${esc(it.title)}${it.tag ? `<span class="ptag">${esc(it.tag)}</span>` : ''}</div>
-            <textarea rows="2" placeholder="수업 활동, 준비물, 유의점 등 자세히 적기">${esc((data.plan || {})[it.title] || '')}</textarea>
+            <textarea rows="2" placeholder="수업 활동, 준비물, 유의점 등 자세히 적기">${esc(planText(it.title))}</textarea>
           </div>
         </div>`).join('');
   }).join('');
@@ -697,8 +791,7 @@ function renderPlan() {
 }
 document.getElementById('planList').addEventListener('input', e => {
   if (e.target.tagName !== 'TEXTAREA') return;
-  data.plan = data.plan || {};
-  data.plan[e.target.closest('.pitem').dataset.title] = e.target.value;
+  data.plan[e.target.closest('.pitem').dataset.title] = { text: e.target.value, t: Date.now() };
   save();
   autoGrow(e.target);
 });
@@ -811,6 +904,24 @@ document.getElementById('btnExport').onclick = () => {
   setTimeout(() => URL.revokeObjectURL(a.href), 1000);
 };
 
+// 구글 시트 웹 앱 주소 넣기 / 바꾸기 / 끄기 (기기마다 한 번)
+document.getElementById('btnSync').onclick = () => {
+  const v = prompt(
+    '구글 시트 웹 앱 주소를 붙여넣으세요.\n(https://script.google.com/…/exec)\n\n비우고 확인을 누르면 동기화를 꺼요.',
+    syncUrl);
+  if (v === null) return;
+  const url = v.trim();
+  if (url && !/^https:\/\/script\.google\.com\/(a\/macros\/[^/]+|macros)\/s\/[^/]+\/exec$/.test(url)) {
+    alert('주소 모양이 달라요.\nApps Script [배포] 후 나오는 "웹 앱" 주소(…/exec로 끝남)를 붙여넣어 주세요.');
+    return;
+  }
+  syncUrl = url;
+  try { url ? localStorage.setItem(SYNC_KEY, url) : localStorage.removeItem(SYNC_KEY); } catch (e) {}
+  syncState = '';
+  showSaved();
+  if (url) pushSync();
+};
+
 const fileInput = document.getElementById('fileInput');
 document.getElementById('btnImport').onclick = () => fileInput.click();
 fileInput.onchange = () => {
@@ -833,10 +944,11 @@ fileInput.onchange = () => {
     }
     msg += '이 기기의 내용을 파일 내용으로 바꿀까요?';
     if (!confirm(msg)) return;
-    data = incoming;
-    try { localStorage.setItem(STORE_KEY, JSON.stringify(data)); } catch (e) {}
+    data = normalize(incoming);
+    store();
     showSaved();
     setView(view);
+    scheduleSync(0);
     alert('불러오기 완료!');
   };
   reader.readAsText(file);
@@ -859,6 +971,7 @@ let startView = 'week';
 monthIdx = monthOfToday();
 try { const v = localStorage.getItem(STORE_KEY + '-view'); if (VIEWS[v]) startView = v; } catch (e) {}
 setView(startView);
+if (syncUrl) pushSync();   // 열 때마다 시트와 맞추기
 window.addEventListener('resize', () => setTopH() || growAll(document.getElementById(VIEWS[view].section)));
 </script>
 </body>
