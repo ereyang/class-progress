@@ -214,6 +214,10 @@
   .day.flash { animation: flash 1.2s ease-out; }
   @keyframes flash { 0% { box-shadow: 0 0 0 6px rgba(47,111,222,.45); } 100% { box-shadow: 0 0 0 0 rgba(47,111,222,0); } }
   .ggrid .check { width: 40px; height: 40px; font-size: 20px; }
+  .ggrid .lesson textarea {
+    margin-top: 4px; min-height: 28px; padding: 3px 5px;
+    font-size: 12px; line-height: 1.35;
+  }
 
   /* ---------- 좁은 화면 (태블릿 세로, 휴대폰) ---------- */
   @media (max-width: 900px) {
@@ -598,6 +602,7 @@ function lessonCard(L, inGrid) {
         <span class="meta"><b>${mdDow(L.key)}</b><br>${L.p}교시</span>
         ${check}
       </div>
+      <textarea rows="1" placeholder="내용">${esc(r.text || COMMON_TEXT[L.id] || '')}</textarea>
     </div>`;
   // 주간 카드: 윗줄 = 반 · 교시 · 차시 (한 줄), 아랫줄 = 내용 + 체크
   return `
