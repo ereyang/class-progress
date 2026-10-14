@@ -6,43 +6,65 @@
 <title>수업 진도표</title>
 <link rel="manifest" href="manifest.json">
 <link rel="icon" href="icon-192.png">
-<meta name="theme-color" content="#2f6fde">
+<meta name="theme-color" content="#c2577a">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Gowun+Batang:wght@400;700&display=swap" rel="stylesheet">
 <style>
   :root {
-    --bg: #f3f5f8;
+    --bg: #fbf7f3;
     --card: #ffffff;
-    --line: #dde2e8;
-    --text: #1f2933;
-    --muted: #66707c;
-    --accent: #2f6fde;
-    --done-bg: #e8f5ec;
-    --done: #2e9e63;
-    --late-bg: #fff3e3;
-    --late: #e8840f;
-    --holiday-bg: #eceef2;
-    --swap-bg: #fff4d1;
+    --line: #eadfe1;
+    --text: #2d2a32;
+    --muted: #7a6f78;
+    --accent: #c2577a;
+    --accent-soft: #f9e8ee;
+    --petal: #eeb4c6;
+    --leaf: #8bb08a;
+    --done-bg: #ecf5ee;
+    --done: #4f9a6e;
+    --late-bg: #fff3e6;
+    --late: #e0832a;
+    --holiday-bg: #f4eff1;
+    --swap-bg: #fff4d6;
     --swap: #8a5d00;
+    --serif: "Gowun Batang", "Batang", serif;
   }
   * { box-sizing: border-box; }
   body {
     margin: 0;
-    background: var(--bg);
     color: var(--text);
     font-family: "Malgun Gothic", "Apple SD Gothic Neo", "Noto Sans KR", system-ui, sans-serif;
     font-size: 16px;
     -webkit-text-size-adjust: 100%;
+    /* 은은한 꽃무늬 바탕 */
+    background-color: var(--bg);
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cg opacity='.5'%3E%3Cg transform='translate(36 40)' fill='%23f3cdd8'%3E%3Ccircle cy='-5' r='4'/%3E%3Ccircle cx='4.8' cy='-1.5' r='4'/%3E%3Ccircle cx='2.9' cy='4' r='4'/%3E%3Ccircle cx='-2.9' cy='4' r='4'/%3E%3Ccircle cx='-4.8' cy='-1.5' r='4'/%3E%3Ccircle r='2.2' fill='%23f6d98b'/%3E%3C/g%3E%3Cg transform='translate(128 122) scale(.7)' fill='%23dfe9d6'%3E%3Ccircle cy='-5' r='4'/%3E%3Ccircle cx='4.8' cy='-1.5' r='4'/%3E%3Ccircle cx='2.9' cy='4' r='4'/%3E%3Ccircle cx='-2.9' cy='4' r='4'/%3E%3Ccircle cx='-4.8' cy='-1.5' r='4'/%3E%3Ccircle r='2.2' fill='%23f6d98b'/%3E%3C/g%3E%3Cpath d='M100 40q6-8 14-6' stroke='%23cfdcc6' stroke-width='2' fill='none' stroke-linecap='round'/%3E%3Cellipse cx='60' cy='140' rx='5' ry='2.5' fill='%23dfe9d6' transform='rotate(-30 60 140)'/%3E%3C/g%3E%3C/svg%3E");
   }
   button { font: inherit; cursor: pointer; color: inherit; }
+  .fl { width: 1em; height: 1em; vertical-align: -0.12em; color: var(--petal); }
+
+  /* 화면 모서리 꽃가지 (장식) */
+  .deco { position: fixed; z-index: 0; pointer-events: none; opacity: .85; }
+  .deco.br { right: -10px; bottom: -6px; width: 260px; }
+  .deco.bl { left: -14px; bottom: -10px; width: 170px; transform: scaleX(-1) rotate(8deg); opacity: .6; }
+  main { position: relative; z-index: 1; }
+  @media (max-width: 900px) { .deco.br { width: 170px; } .deco.bl { display: none; } }
 
   /* ---------- 상단 바 ---------- */
   .top {
     position: sticky; top: 0; z-index: 10;
-    background: var(--card);
-    border-bottom: 1px solid var(--line);
+    background: rgba(255, 255, 255, .94);
+    border-bottom: 2px solid var(--accent-soft);
+    box-shadow: 0 2px 12px rgba(194, 87, 122, .06);
     padding: 10px 16px;
     display: flex; flex-wrap: wrap; align-items: center; gap: 8px 16px;
   }
-  .title { font-size: 20px; font-weight: 700; margin: 0; }
+  .title {
+    font-family: var(--serif); font-size: 23px; font-weight: 700; margin: 0;
+    display: flex; align-items: center; gap: 6px; letter-spacing: -0.02em;
+  }
+  .title .fl { width: 26px; height: 26px; }
   .range { color: var(--muted); font-size: 14px; }
   .spacer { flex: 1; }
   .seg { display: inline-flex; border: 1px solid var(--line); border-radius: 10px; overflow: hidden; }
@@ -65,7 +87,9 @@
     display: flex; align-items: center; justify-content: center; gap: 10px;
     padding: 14px 16px 4px;
   }
-  .weeknav .label { font-weight: 700; font-size: 17px; text-align: center; min-width: 220px; }
+  .weeknav .label { font-family: var(--serif); font-weight: 700; font-size: 19px; text-align: center; min-width: 220px; }
+  .weeknav .label small { font-family: "Malgun Gothic", sans-serif; }
+  .weeknav .label .sprig { width: 22px; height: 14px; color: var(--leaf); vertical-align: middle; margin: 0 4px; }
   .weeknav .label small { display: block; font-weight: 400; font-size: 13px; color: var(--muted); }
   .week {
     display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 10px;
@@ -75,15 +99,28 @@
     background: var(--card); border: 1px solid var(--line); border-radius: 12px;
     padding: 8px; min-height: 140px;
   }
-  .day.today { border: 2px solid var(--accent); }
+  .day { box-shadow: 0 1px 4px rgba(120, 80, 90, .05); }
+  .day.today { border: 2px solid var(--accent); background: linear-gradient(#fff, #fff 60%, #fdf4f7); }
   .day.holiday { background: var(--holiday-bg); }
   .dhead {
     display: flex; justify-content: space-between; align-items: center; gap: 6px;
     padding: 2px 4px 8px; font-weight: 700;
   }
+  .dhead .dname { font-family: var(--serif); font-size: 17px; }
+  .dhead .dtools { display: flex; align-items: center; gap: 4px; }
   .dhead .todaytag {
-    font-size: 12px; background: var(--accent); color: #fff; border-radius: 6px; padding: 1px 6px;
+    font-size: 12px; background: var(--accent); color: #fff; border-radius: 10px; padding: 2px 8px;
+    display: inline-flex; align-items: center; gap: 3px;
   }
+  .dhead .todaytag .fl { color: #fff; }
+  .dprint {
+    width: 34px; height: 34px; border-radius: 8px; border: 1px solid var(--line);
+    background: var(--card); color: var(--muted); display: inline-flex; align-items: center; justify-content: center; padding: 0;
+  }
+  .dprint:hover { color: var(--accent); border-color: var(--accent); }
+  .dprint svg { width: 18px; height: 18px; }
+  .holiday-msg .fl { display: block; width: 46px; height: 46px; margin: 0 auto 8px; opacity: .7; }
+  .empty-msg .fl { width: 18px; height: 18px; display: block; margin: 0 auto 4px; opacity: .6; }
   .note {
     font-size: 13px; border-radius: 8px; padding: 6px 8px; margin-bottom: 8px;
   }
@@ -112,6 +149,7 @@
     font-size: 22px; line-height: 1; color: transparent;
   }
   .lesson.done .check { background: var(--done); border-color: var(--done); color: #fff; }
+  .check:hover { border-color: var(--accent); }
   .latetag { font-size: 12px; color: var(--late); font-weight: 700; }
   .lesson textarea {
     display: block; width: 100%; margin-top: 6px;
@@ -235,12 +273,95 @@
     .saved { width: 100%; }
   }
   [hidden] { display: none !important; }
+
+  /* ---------- 인쇄 (하루 진도) ---------- */
+  #printSheet { display: none; }
+  @page { size: A4 portrait; margin: 14mm 14mm 16mm; }
+  @media print {
+    body { background: #fff !important; }
+    .top, main, .deco, .toast { display: none !important; }
+    #printSheet { display: block; color: #2d2a32; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  }
+  .ps-head { display: flex; align-items: flex-end; justify-content: space-between; gap: 16px; border-bottom: 2px solid var(--petal); padding-bottom: 10px; }
+  .ps-date { font-family: var(--serif); font-size: 30px; font-weight: 700; }
+  .ps-sub { font-size: 13px; color: var(--muted); margin-top: 4px; }
+  .ps-branch { width: 190px; height: auto; flex: none; }
+  .ps-note { margin-top: 10px; font-size: 13px; background: var(--swap-bg); color: var(--swap); border-radius: 6px; padding: 5px 10px; display: inline-block; }
+  .ps-table { width: 100%; border-collapse: collapse; margin-top: 14px; font-size: 14px; }
+  .ps-table th { background: var(--accent-soft); color: #7d3a52; font-weight: 700; padding: 8px 6px; text-align: left; border-bottom: 1px solid var(--petal); }
+  .ps-table td { padding: 10px 6px; border-bottom: 1px solid var(--line); vertical-align: top; }
+  .ps-table tr { break-inside: avoid; }
+  .ps-table small { display: block; color: var(--muted); font-size: 11px; }
+  .ps-badge { display: inline-block; background: var(--c); color: #fff; font-weight: 700; border-radius: 5px; padding: 2px 8px; }
+  .ps-content { font-weight: 700; font-size: 15px; white-space: pre-wrap; }
+  .ps-detail { margin-top: 4px; font-size: 13px; color: #4a4450; white-space: pre-wrap; line-height: 1.5; }
+  .ps-memo { margin-top: 8px; height: 46px; background: repeating-linear-gradient(transparent 0 22px, #e6dadd 22px 23px); }
+  .ps-box { width: 22px; height: 22px; border: 2px solid #b9aab0; border-radius: 5px; display: inline-flex; align-items: center; justify-content: center; font-size: 15px; color: var(--done); font-weight: 700; }
+  .ps-foot { margin-top: 18px; text-align: right; font-family: var(--serif); color: var(--muted); font-size: 12px; }
 </style>
 </head>
 <body>
 
+<!-- 꽃 그림 모음 (여러 곳에서 <use>로 가져다 씀) -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <symbol id="fl" viewBox="-12 -12 24 24">
+    <g fill="currentColor">
+      <ellipse cy="-5.6" rx="3.8" ry="5.6"/>
+      <ellipse cy="-5.6" rx="3.8" ry="5.6" transform="rotate(72)"/>
+      <ellipse cy="-5.6" rx="3.8" ry="5.6" transform="rotate(144)"/>
+      <ellipse cy="-5.6" rx="3.8" ry="5.6" transform="rotate(216)"/>
+      <ellipse cy="-5.6" rx="3.8" ry="5.6" transform="rotate(288)"/>
+    </g>
+    <g fill="#fff" opacity=".35">
+      <ellipse cy="-6.5" rx="1.3" ry="3"/>
+      <ellipse cy="-6.5" rx="1.3" ry="3" transform="rotate(72)"/>
+      <ellipse cy="-6.5" rx="1.3" ry="3" transform="rotate(144)"/>
+      <ellipse cy="-6.5" rx="1.3" ry="3" transform="rotate(216)"/>
+      <ellipse cy="-6.5" rx="1.3" ry="3" transform="rotate(288)"/>
+    </g>
+    <circle r="2.7" fill="#f4c55c"/>
+    <circle r="1.1" fill="#e2a33a"/>
+  </symbol>
+  <symbol id="sprig" viewBox="0 0 30 18">
+    <path d="M2 14 C10 13 18 10 28 4" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linecap="round"/>
+    <ellipse cx="11" cy="9" rx="4.5" ry="2" fill="currentColor" transform="rotate(-35 11 9)"/>
+    <ellipse cx="19" cy="12" rx="4.5" ry="2" fill="currentColor" transform="rotate(20 19 12)"/>
+  </symbol>
+  <symbol id="printer" viewBox="0 0 24 24">
+    <g fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round">
+      <path d="M7 9V3h10v6"/><rect x="3" y="9" width="18" height="8" rx="2"/><path d="M7 14h10v7H7z" fill="#fff"/>
+    </g>
+  </symbol>
+  <symbol id="branch" viewBox="0 0 260 220">
+    <g fill="none" stroke="#a9c3a3" stroke-linecap="round">
+      <path d="M258 216 C205 192 165 152 125 122 S55 72 22 40" stroke-width="3"/>
+      <path d="M176 164 C180 134 198 114 222 102" stroke-width="2.4"/>
+      <path d="M100 104 C94 82 104 62 120 50" stroke-width="2.2"/>
+      <path d="M60 74 C48 70 40 76 34 86" stroke-width="2"/>
+    </g>
+    <g fill="#bcd4b3">
+      <ellipse cx="214" cy="190" rx="15" ry="6" transform="rotate(-20 214 190)"/>
+      <ellipse cx="160" cy="146" rx="14" ry="5.5" transform="rotate(40 160 146)"/>
+      <ellipse cx="196" cy="126" rx="12" ry="5" transform="rotate(-40 196 126)"/>
+      <ellipse cx="82" cy="88" rx="13" ry="5" transform="rotate(35 82 88)"/>
+      <ellipse cx="110" cy="74" rx="11" ry="4.5" transform="rotate(-55 110 74)"/>
+      <ellipse cx="44" cy="56" rx="12" ry="4.5" transform="rotate(50 44 56)"/>
+    </g>
+    <use href="#fl" x="200" y="80" width="44" height="44" style="color:#eeb4c6"/>
+    <use href="#fl" x="128" y="108" width="30" height="30" style="color:#f5cfda"/>
+    <use href="#fl" x="102" y="30" width="36" height="36" style="color:#e79ab2"/>
+    <use href="#fl" x="4" y="20" width="38" height="38" style="color:#f2c0cf"/>
+    <use href="#fl" x="22" y="78" width="22" height="22" style="color:#f8dce4"/>
+    <circle cx="232" cy="162" r="5" fill="#e79ab2"/>
+    <circle cx="70" cy="60" r="4" fill="#f2c0cf"/>
+  </symbol>
+</svg>
+
+<svg class="deco br" viewBox="0 0 260 220" aria-hidden="true"><use href="#branch"/></svg>
+<svg class="deco bl" viewBox="0 0 260 220" aria-hidden="true"><use href="#branch"/></svg>
+
 <header class="top">
-  <h1 class="title">수업 진도표</h1>
+  <h1 class="title"><svg class="fl"><use href="#fl"/></svg>수업 진도표</h1>
   <span class="range" id="range"></span>
   <div class="seg" role="tablist">
     <button id="btnWeek" class="on">주간</button>
@@ -251,6 +372,7 @@
   <div class="spacer"></div>
   <div class="sync">
     <span class="saved" id="saved"></span>
+    <button class="btn" id="btnPrint">🖨 오늘 인쇄</button>
     <button class="btn" id="btnSync">동기화</button>
     <button class="btn" id="btnExport">내보내기</button>
     <button class="btn" id="btnImport">불러오기</button>
@@ -288,6 +410,8 @@
     <div class="ggrid" id="classList"></div>
   </section>
 </main>
+
+<div id="printSheet"></div>
 
 <script>
 // =====================================================================
@@ -661,7 +785,7 @@ function renderWeek() {
   const w = weeks[weekIdx];
   const first = w[0].key, last = w[w.length - 1].key;
   document.getElementById('weekLabel').innerHTML =
-    `${weekIdx + 1}주차<small>${mdDow(first)} ~ ${mdDow(last)}</small>`;
+    `<svg class="sprig"><use href="#sprig"/></svg>${weekIdx + 1}주차<svg class="sprig" style="transform:scaleX(-1)"><use href="#sprig"/></svg><small>${mdDow(first)} ~ ${mdDow(last)}</small>`;
   document.getElementById('prevWeek').disabled = weekIdx === 0;
   document.getElementById('nextWeek').disabled = weekIdx === weeks.length - 1;
 
@@ -673,14 +797,17 @@ function renderWeek() {
     if (day.partial) {
       body += `<div class="note off">${esc(day.partial.reason)}: ${day.partial.classes.join(', ')} 수업 없음</div>`;
     }
-    if (day.holiday) body += `<div class="holiday-msg">${esc(day.holiday)}<br><small>수업 없음</small></div>`;
-    else if (!day.lessons.length) body += `<div class="empty-msg">수업 없음</div>`;
+    if (day.holiday) body += `<div class="holiday-msg"><svg class="fl"><use href="#fl"/></svg>${esc(day.holiday)}<br><small>수업 없음</small></div>`;
+    else if (!day.lessons.length) body += `<div class="empty-msg"><svg class="fl"><use href="#fl"/></svg>수업 없음</div>`;
     else body += day.lessons.map(L => lessonCard(L, false)).join('');
     return `
       <div class="day ${today ? 'today' : ''} ${day.holiday ? 'holiday' : ''}">
         <div class="dhead">
-          <span>${DOW[day.dow]} ${md(day.key)}</span>
-          ${today ? '<span class="todaytag">오늘</span>' : ''}
+          <span class="dname">${DOW[day.dow]} ${md(day.key)}</span>
+          <span class="dtools">
+            ${today ? '<span class="todaytag"><svg class="fl"><use href="#fl"/></svg>오늘</span>' : ''}
+            ${day.lessons.length ? `<button class="dprint" data-key="${day.key}" title="이날 진도 인쇄" aria-label="${md(day.key)} 진도 인쇄"><svg><use href="#printer"/></svg></button>` : ''}
+          </span>
         </div>
         ${body}
       </div>`;
@@ -911,6 +1038,61 @@ document.getElementById('btnExport').onclick = () => {
   a.remove();
   setTimeout(() => URL.revokeObjectURL(a.href), 1000);
 };
+
+// =====================================================================
+// 9-1. 하루 진도 인쇄 (A4 한 장)
+// =====================================================================
+function printDay(key) {
+  const day = dayMap[key];
+  const d = parse(key);
+  const notes = [];
+  if (day.useDow !== day.dow) notes.push(`${DOW[day.useDow]}요일 시간표로 수업`);
+  if (day.partial) notes.push(`${day.partial.reason}: ${day.partial.classes.join(', ')} 수업 없음`);
+  const rows = day.lessons.map(L => {
+    const r = rec(L.id);
+    const common = COMMON_TEXT[L.id];
+    const content = r.text || common || '';
+    const detail = common && (!r.text || r.text === common) ? planText(common) : '';
+    return `<tr>
+      <td><b>${L.p}교시</b><small>${PERIOD_TIME[L.p]}</small></td>
+      <td><span class="ps-badge" style="--c:${colorOf(L.cls)}">${L.cls}</span></td>
+      <td>${L.no}차시</td>
+      <td>
+        <div class="ps-content">${esc(content) || '&nbsp;'}</div>
+        ${detail ? `<div class="ps-detail">${esc(detail)}</div>` : ''}
+        <div class="ps-memo"></div>
+      </td>
+      <td><span class="ps-box">${r.done ? '✔' : ''}</span></td>
+    </tr>`;
+  }).join('');
+  document.getElementById('printSheet').innerHTML = `
+    <div class="ps-head">
+      <div>
+        <div class="ps-date">${d.getMonth() + 1}월 ${d.getDate()}일 ${DOW[day.dow]}요일</div>
+        <div class="ps-sub">오늘의 수업 진도 · 수업 ${day.lessons.length}개</div>
+      </div>
+      <svg class="ps-branch" viewBox="0 0 260 220"><use href="#branch"/></svg>
+    </div>
+    ${notes.map(n => `<div class="ps-note">${esc(n)}</div>`).join(' ')}
+    <table class="ps-table">
+      <thead><tr><th style="width:62px">교시</th><th style="width:58px">반</th><th style="width:56px">차시</th><th>수업 내용 · 메모</th><th style="width:42px">완료</th></tr></thead>
+      <tbody>${rows}</tbody>
+    </table>
+    <div class="ps-foot">✿ 수업 진도표</div>`;
+  window.print();
+}
+
+// 오늘 수업이 없으면 다음 수업일을 인쇄
+document.getElementById('btnPrint').onclick = () => {
+  const next = days.find(d => d.key >= TODAY && d.lessons.length);
+  if (!next) { toast('인쇄할 수업이 남아 있지 않아요.'); return; }
+  if (next.key !== TODAY) toast(`오늘은 수업이 없어서 다음 수업일(${mdDow(next.key)})을 인쇄해요.`);
+  printDay(next.key);
+};
+document.getElementById('week').addEventListener('click', e => {
+  const b = e.target.closest('.dprint');
+  if (b) printDay(b.dataset.key);
+});
 
 // 구글 시트 웹 앱 주소 넣기 / 바꾸기 / 끄기 (기기마다 한 번)
 document.getElementById('btnSync').onclick = () => {
