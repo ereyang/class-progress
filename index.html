@@ -4,6 +4,9 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>수업 진도표</title>
+<link rel="manifest" href="manifest.json">
+<link rel="icon" href="icon-192.png">
+<meta name="theme-color" content="#2f6fde">
 <style>
   :root {
     --bg: #f3f5f8;
@@ -977,6 +980,8 @@ monthIdx = monthOfToday();
 try { const v = localStorage.getItem(STORE_KEY + '-view'); if (VIEWS[v]) startView = v; } catch (e) {}
 setView(startView);
 if (syncUrl) pushSync();   // 열 때마다 시트와 맞추기
+// 앱으로 설치할 수 있게 (웹 주소로 열었을 때만)
+if ('serviceWorker' in navigator && location.protocol === 'https:') navigator.serviceWorker.register('sw.js').catch(() => {});
 window.addEventListener('resize', () => setTopH() || growAll(document.getElementById(VIEWS[view].section)));
 </script>
 </body>
