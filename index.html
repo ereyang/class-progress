@@ -276,7 +276,9 @@
 
   /* ---------- 인쇄 (하루 진도) ---------- */
   #printSheet { display: none; }
-  @page { size: A4 portrait; margin: 14mm 14mm 16mm; }
+  @page { size: A4 portrait; margin: 10mm; }
+  /* 인쇄물은 용지 왼쪽 위에 절반 크기로: 가로 95mm 안에 60%로 줄여 넣음 */
+  .ps-small { zoom: .6; width: calc(95mm / .6); }
   @media print {
     body { background: #fff !important; }
     .top, main, .deco, .toast { display: none !important; }
@@ -287,15 +289,15 @@
   .ps-sub { font-size: 13px; color: var(--muted); margin-top: 4px; }
   .ps-branch { width: 190px; height: auto; flex: none; }
   .ps-note { margin-top: 10px; font-size: 13px; background: var(--swap-bg); color: var(--swap); border-radius: 6px; padding: 5px 10px; display: inline-block; }
-  .ps-table { width: 100%; border-collapse: collapse; margin-top: 14px; font-size: 14px; }
+  .ps-table { width: 100%; border-collapse: collapse; margin-top: 14px; font-size: 16px; }
   .ps-table th { background: var(--accent-soft); color: #7d3a52; font-weight: 700; padding: 8px 6px; text-align: left; border-bottom: 1px solid var(--petal); }
   .ps-table td { padding: 10px 6px; border-bottom: 1px solid var(--line); vertical-align: top; }
   .ps-table tr { break-inside: avoid; }
-  .ps-table small { display: block; color: var(--muted); font-size: 11px; }
+  .ps-table small { display: block; color: var(--muted); font-size: 13px; }
   .ps-badge { display: inline-block; background: var(--c); color: #fff; font-weight: 700; border-radius: 5px; padding: 2px 8px; }
-  .ps-content { font-weight: 700; font-size: 15px; white-space: pre-wrap; }
-  .ps-detail { margin-top: 4px; font-size: 13px; color: #4a4450; white-space: pre-wrap; line-height: 1.5; }
-  .ps-memo { margin-top: 8px; height: 46px; background: repeating-linear-gradient(transparent 0 22px, #e6dadd 22px 23px); }
+  .ps-content { font-weight: 700; font-size: 18px; white-space: pre-wrap; }
+  .ps-detail { margin-top: 4px; font-size: 15px; color: #4a4450; white-space: pre-wrap; line-height: 1.5; }
+  .ps-memo { margin-top: 6px; height: 46px; background: repeating-linear-gradient(transparent 0 22px, #e6dadd 22px 23px); }
   .ps-box { width: 22px; height: 22px; border: 2px solid #b9aab0; border-radius: 5px; display: inline-flex; align-items: center; justify-content: center; font-size: 15px; color: var(--done); font-weight: 700; }
   .ps-foot { margin-top: 18px; text-align: right; font-family: var(--serif); color: var(--muted); font-size: 12px; }
 </style>
@@ -1065,7 +1067,7 @@ function printDay(key) {
       <td><span class="ps-box">${r.done ? '✔' : ''}</span></td>
     </tr>`;
   }).join('');
-  document.getElementById('printSheet').innerHTML = `
+  document.getElementById('printSheet').innerHTML = `<div class="ps-small">
     <div class="ps-head">
       <div>
         <div class="ps-date">${d.getMonth() + 1}월 ${d.getDate()}일 ${DOW[day.dow]}요일</div>
@@ -1075,10 +1077,10 @@ function printDay(key) {
     </div>
     ${notes.map(n => `<div class="ps-note">${esc(n)}</div>`).join(' ')}
     <table class="ps-table">
-      <thead><tr><th style="width:62px">교시</th><th style="width:58px">반</th><th style="width:56px">차시</th><th>수업 내용 · 메모</th><th style="width:42px">완료</th></tr></thead>
+      <thead><tr><th style="width:70px">교시</th><th style="width:58px">반</th><th style="width:56px">차시</th><th>수업 내용 · 메모</th><th style="width:54px">완료</th></tr></thead>
       <tbody>${rows}</tbody>
     </table>
-    <div class="ps-foot">✿ 수업 진도표</div>`;
+    <div class="ps-foot">✿ 수업 진도표</div></div>`;
   window.print();
 }
 
