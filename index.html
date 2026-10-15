@@ -98,11 +98,11 @@
     display: flex; justify-content: space-between; align-items: center; gap: 6px;
     padding: 2px 4px 8px; font-weight: 700;
   }
-  .dhead .dname { font-family: var(--serif); font-size: 17px; display: inline-flex; align-items: center; gap: 5px; }
+  .dhead .dname { font-family: var(--serif); font-size: 17px; display: inline-flex; align-items: center; gap: 5px; white-space: nowrap; min-width: 0; }
   .dchar { width: 26px; height: 24px; object-fit: contain; }
   .dhead .dtools { display: flex; align-items: center; gap: 4px; }
   .dhead .todaytag {
-    font-size: 12px; background: var(--accent); color: #fff; border-radius: 10px; padding: 2px 8px;
+    font-size: 11px; background: var(--accent); color: #fff; border-radius: 10px; padding: 2px 7px; white-space: nowrap;
     display: inline-flex; align-items: center; gap: 3px;
   }
   .dhead .todaytag .fl { color: #fff; }
@@ -798,7 +798,7 @@ function renderWeek() {
         <div class="dhead">
           <span class="dname"><img class="dchar" src="char.png" alt="">${DOW[day.dow]} ${md(day.key)}</span>
           <span class="dtools">
-            ${today ? '<span class="todaytag"><svg class="fl"><use href="#fl"/></svg>오늘</span>' : ''}
+            ${today ? '<span class="todaytag">오늘</span>' : ''}
             ${day.lessons.length ? `<button class="dprint" data-key="${day.key}" title="이날 진도 인쇄" aria-label="${md(day.key)} 진도 인쇄"><svg><use href="#printer"/></svg></button>` : ''}
           </span>
         </div>
