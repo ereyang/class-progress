@@ -12,7 +12,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Gowun+Batang:wght@400;700&display=swap" rel="stylesheet">
 <style>
   :root {
-    --bg: #fbf7f3;
+    --bg: #f7f7f9;
     --card: #ffffff;
     --line: #eadfe1;
     --text: #2d2a32;
@@ -37,19 +37,11 @@
     font-family: "Malgun Gothic", "Apple SD Gothic Neo", "Noto Sans KR", system-ui, sans-serif;
     font-size: 16px;
     -webkit-text-size-adjust: 100%;
-    /* 은은한 꽃무늬 바탕 */
-    background-color: var(--bg);
-    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cg opacity='.5'%3E%3Cg transform='translate(36 40)' fill='%23f3cdd8'%3E%3Ccircle cy='-5' r='4'/%3E%3Ccircle cx='4.8' cy='-1.5' r='4'/%3E%3Ccircle cx='2.9' cy='4' r='4'/%3E%3Ccircle cx='-2.9' cy='4' r='4'/%3E%3Ccircle cx='-4.8' cy='-1.5' r='4'/%3E%3Ccircle r='2.2' fill='%23f6d98b'/%3E%3C/g%3E%3Cg transform='translate(128 122) scale(.7)' fill='%23dfe9d6'%3E%3Ccircle cy='-5' r='4'/%3E%3Ccircle cx='4.8' cy='-1.5' r='4'/%3E%3Ccircle cx='2.9' cy='4' r='4'/%3E%3Ccircle cx='-2.9' cy='4' r='4'/%3E%3Ccircle cx='-4.8' cy='-1.5' r='4'/%3E%3Ccircle r='2.2' fill='%23f6d98b'/%3E%3C/g%3E%3Cpath d='M100 40q6-8 14-6' stroke='%23cfdcc6' stroke-width='2' fill='none' stroke-linecap='round'/%3E%3Cellipse cx='60' cy='140' rx='5' ry='2.5' fill='%23dfe9d6' transform='rotate(-30 60 140)'/%3E%3C/g%3E%3C/svg%3E");
+    background: var(--bg);
   }
   button { font: inherit; cursor: pointer; color: inherit; }
   .fl { width: 1em; height: 1em; vertical-align: -0.12em; color: var(--petal); }
 
-  /* 화면 모서리 꽃가지 (장식) */
-  .deco { position: fixed; z-index: 0; pointer-events: none; opacity: .85; }
-  .deco.br { right: -10px; bottom: -6px; width: 260px; }
-  .deco.bl { left: -14px; bottom: -10px; width: 170px; transform: scaleX(-1) rotate(8deg); opacity: .6; }
-  main { position: relative; z-index: 1; }
-  @media (max-width: 900px) { .deco.br { width: 170px; } .deco.bl { display: none; } }
 
   /* ---------- 상단 바 ---------- */
   .top {
@@ -106,7 +98,8 @@
     display: flex; justify-content: space-between; align-items: center; gap: 6px;
     padding: 2px 4px 8px; font-weight: 700;
   }
-  .dhead .dname { font-family: var(--serif); font-size: 17px; }
+  .dhead .dname { font-family: var(--serif); font-size: 17px; display: inline-flex; align-items: center; gap: 5px; }
+  .dchar { width: 26px; height: 24px; object-fit: contain; }
   .dhead .dtools { display: flex; align-items: center; gap: 4px; }
   .dhead .todaytag {
     font-size: 12px; background: var(--accent); color: #fff; border-radius: 10px; padding: 2px 8px;
@@ -359,8 +352,6 @@
   </symbol>
 </svg>
 
-<svg class="deco br" viewBox="0 0 260 220" aria-hidden="true"><use href="#branch"/></svg>
-<svg class="deco bl" viewBox="0 0 260 220" aria-hidden="true"><use href="#branch"/></svg>
 
 <header class="top">
   <h1 class="title"><svg class="fl"><use href="#fl"/></svg>수업 진도표</h1>
@@ -805,7 +796,7 @@ function renderWeek() {
     return `
       <div class="day ${today ? 'today' : ''} ${day.holiday ? 'holiday' : ''}">
         <div class="dhead">
-          <span class="dname">${DOW[day.dow]} ${md(day.key)}</span>
+          <span class="dname"><img class="dchar" src="char.png" alt="">${DOW[day.dow]} ${md(day.key)}</span>
           <span class="dtools">
             ${today ? '<span class="todaytag"><svg class="fl"><use href="#fl"/></svg>오늘</span>' : ''}
             ${day.lessons.length ? `<button class="dprint" data-key="${day.key}" title="이날 진도 인쇄" aria-label="${md(day.key)} 진도 인쇄"><svg><use href="#printer"/></svg></button>` : ''}
